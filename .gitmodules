@@ -1,0 +1,3 @@
+[submodule "go-say-hello"]
+	path = go-say-hello
+	url = https://github.com/AuroraLeafa/belajar-golang.git
