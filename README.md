@@ -1,2 +1,2 @@
 # belajar-golang
-Sesuai nama repo
+Details may add later
