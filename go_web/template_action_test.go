@@ -82,7 +82,7 @@ func TestTemplateRange(t *testing.T) {
 	fmt.Println(string(body))
 }
 
-// ---------------------------- Looping (Using Range) --------------------
+// ---------------------------- With (For Nested Struct --------------------
 func TemplateActionWith(writer http.ResponseWriter, request *http.Request) {
 	t := template.Must(template.ParseFS(templates_action, "templates/*.gohtml"))
 	t.ExecuteTemplate(writer, "address.gohtml", map[string]interface{}{
@@ -98,6 +98,23 @@ func TestTemplateWith(t *testing.T) {
 	recorder := httptest.NewRecorder()
 
 	TemplateActionWith(recorder, request)
+	body, _ := io.ReadAll(recorder.Result().Body)
+	fmt.Println(string(body))
+}
+
+// ---------------------------- Layouting (Component Based) --------------------
+func TemplateLayout(writer http.ResponseWriter, request *http.Request) {
+	t := template.Must(template.ParseFS(templates_action, "templates/*.gohtml"))
+	t.ExecuteTemplate(writer, "layout", map[string]interface{}{
+		"Name": "Reff",
+	})
+}
+
+func TestTemplateLayout(t *testing.T) {
+	request := httptest.NewRequest(http.MethodGet, "http://localhost:8080/", nil)
+	recorder := httptest.NewRecorder()
+
+	TemplateLayout(recorder, request)
 	body, _ := io.ReadAll(recorder.Result().Body)
 	fmt.Println(string(body))
 }
