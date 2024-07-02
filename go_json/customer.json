@@ -1,0 +1,19 @@
+{
+  "FirstName" : "Muh",
+  "MiddleName" : "Reff",
+  "LastName" : "Sugg",
+  "Age" : 15,
+  "Hobbies" : ["Game", "Code"],
+  "Addresses" : [
+  {
+    "Street" : "Bogor",
+    "Country" : "Indonesia",
+    "PostalCode" : 16750
+  },
+  {
+    "Street" : "Jakarta",
+    "Country" : "Indonesia",
+    "PostalCode" : 16990
+  }
+  ]
+}
