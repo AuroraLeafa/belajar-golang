@@ -1,0 +1,8 @@
+app:
+  name: "belajar_golang_viper"
+  version: "1.0.0"
+  author: "Reff"
+database:
+  show_sql: true
+  host: "localhost"
+  port: 3306
