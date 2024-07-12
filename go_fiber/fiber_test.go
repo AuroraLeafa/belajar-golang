@@ -4,7 +4,9 @@ import (
 	"bytes"
 	_ "embed"
 	"encoding/json"
+	"errors"
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/template/mustache/v2"
 	"github.com/stretchr/testify/assert"
 	"go_fiber/helper"
 	"io"
@@ -15,7 +17,14 @@ import (
 	"testing"
 )
 
-var app = fiber.New()
+var engine = mustache.New("./template", ".mustache")
+var app = fiber.New(fiber.Config{
+	Views: engine,
+	ErrorHandler: func(ctx *fiber.Ctx, err error) error {
+		ctx.Status(fiber.StatusInternalServerError)
+		return ctx.SendString("Error:" + err.Error())
+	},
+})
 
 func TestRoutingGet(t *testing.T) {
 	app.Get("/", func(c *fiber.Ctx) error {
@@ -157,7 +166,7 @@ type LoginRequest struct {
 }
 
 func TestRequestBody(t *testing.T) {
-	app.Post("/login", func(c *fiber.Ctx) error { // path adalah /login
+	app.Post("/login", func(c *fiber.Ctx) error {
 		body := c.Body()
 		request := new(LoginRequest)
 		err := json.Unmarshal(body, &request)
@@ -166,7 +175,7 @@ func TestRequestBody(t *testing.T) {
 		return c.SendString("Hello, " + request.Username)
 	})
 
-	//Dibawah ini untuk melakukan unit test Request Form
+	//Dibawah ini untuk melakukan unit test Request Body
 	body := strings.NewReader(`{"username":"Reff", "password":"Secret"}`) //Body harus dalam bentuk JSON
 	request := httptest.NewRequest(http.MethodPost, "/login", body)
 	request.Header.Set("Content-Type", "application/json")
@@ -180,7 +189,8 @@ func TestRequestBody(t *testing.T) {
 	assert.Equal(t, "Hello, Reff", string(bytes))
 }
 
-// -------------------------------------- Request Body ----------------------------
+// -------------------------------------- Body Parser ----------------------------
+// Basically Request body tapi lebih sekaligus
 type RegisterUser struct {
 	Username string `json:"username" xml:"username" form:"username"`
 	Password string `json:"password" xml:"password" form:"password"`
@@ -332,4 +342,46 @@ func TestStatic(t *testing.T) {
 	bytes, err := io.ReadAll(resp.Body)
 	assert.Nil(t, err)
 	assert.Equal(t, `Sample File for Upload`, string(bytes))
+}
+
+// -------------------------------------- Error handler Custom ----------------------------
+func TestErrorHandler(t *testing.T) {
+	app.Get("/error", func(ctx *fiber.Ctx) error {
+		return errors.New("Error")
+	})
+
+	//Dibawah ini untuk melakukan unit test Error handler
+	request := httptest.NewRequest(http.MethodGet, "/error", nil)
+
+	resp, err := app.Test(request)
+	assert.Nil(t, err, "Error should be nil")
+	assert.Equal(t, 500, resp.StatusCode, "Status should be 500")
+
+	bytes, err := io.ReadAll(resp.Body)
+	assert.Nil(t, err)
+	assert.Equal(t, `Error: Error`, string(bytes))
+}
+
+// -------------------------------------- View in Fiber ----------------------------
+func TestTemplate(t *testing.T) {
+	app.Get("/view", func(ctx *fiber.Ctx) error {
+		return ctx.Render("index", fiber.Map{
+			"title":   "This is Title",
+			"header":  "This is Header",
+			"content": "This is Content",
+		})
+	})
+
+	//Dibawah ini untuk melakukan unit test Template
+	request := httptest.NewRequest(http.MethodGet, "/view", nil)
+
+	resp, err := app.Test(request)
+	assert.Nil(t, err, "Error should be nil")
+	assert.Equal(t, 200, resp.StatusCode, "Status should be 200")
+
+	bytes, err := io.ReadAll(resp.Body)
+	assert.Nil(t, err)
+	assert.Contains(t, string(bytes), `This is Title`)
+	assert.Contains(t, string(bytes), `This is Header`)
+	assert.Contains(t, string(bytes), `This is Content`)
 }
