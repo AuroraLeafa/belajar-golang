@@ -53,7 +53,7 @@
           "Category API"
         ],
         "description": "Create New Category",
-        "summary": "List of All Category",
+        "summary": "Create New  Category",
         "requestBody": {
           "content": {
             "application/json": {
